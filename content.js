@@ -5,6 +5,7 @@ const SAVE_BUTTON_CLASS = 'ad-saver-extension-save-button';
 const BUTTON_WRAPPER_CLASS = 'ad-saver-button-wrapper'; // For the new wrapper
 const ADVERT_FARM_LOGIN_URL = 'https://www.advertfarm.com/'; // Or your specific login page
 const ADVERT_FARM_INSPIRATION_URL = 'https://www.advertfarm.com/inspiration'; // URL for inspiration page
+const ADVERT_FARM_API_TEST_URL = 'https://www.advertfarm.com/api/test'; // URL for the test API endpoint
 // const LOCAL_STORAGE_ORG_KEY = "selectedOrgId"; // No longer needed here, background script handles retrieval
 
 // Debouncer function to limit how often a function is called
@@ -107,36 +108,94 @@ function addSaveButtonToAd(originalButtonElement, libraryId) {
         event.preventDefault();
         event.stopPropagation();
 
-        // Check authentication status and get orgId before proceeding
+        // Disable button and show saving state
+        saveButton.style.opacity = '0.7';
+        textSpan.textContent = 'Saving...';
+        saveButton.setAttribute('disabled', 'true');
+
         chrome.runtime.sendMessage({ action: "checkAuth" }, (response) => {
             if (chrome.runtime.lastError) {
                 console.error('[Ad Saver] Error sending message to background script:', chrome.runtime.lastError.message);
                 alert('Could not verify authentication. Please try again.');
+                textSpan.textContent = 'Save Ad to Advert Farm';
+                saveButton.style.opacity = '1';
+                saveButton.removeAttribute('disabled');
                 return;
             }
             
             if (response && response.sessionData && response.sessionData.user) {
-                const userId = response.sessionData.user.id; // Assuming user object has an 'id' field
-                const organizationId = response.organizationId; // Get orgId from background script's response
+                const userId = response.sessionData.user.id;
+                const organizationId = response.organizationId;
 
                 if (!organizationId) {
                     console.warn('[Ad Saver] Organization ID not retrieved. Redirecting to inspiration page.');
-                    alert('Organization ID not found. Please select an organization on Advert Farm. Redirecting...');
+                    alert('Organization ID not found. Please select an organization on the Advert Farm inspiration page. Redirecting...');
                     window.open(ADVERT_FARM_INSPIRATION_URL, '_blank');
+                    textSpan.textContent = 'Save Ad to Advert Farm';
+                    saveButton.style.opacity = '1';
+                    saveButton.removeAttribute('disabled');
                     return;
                 }
 
                 console.log(`[Ad Saver] Authenticated. User ID: ${userId}, Org ID: ${organizationId}. Proceeding to save ad. Library ID: ${libraryId}`);
-                // For now, just alert. Later, this will send to your backend.
-                alert(`Library ID: ${libraryId}\nUser ID: ${userId}\nOrg ID: ${organizationId}\n(Next step: Send to backend)`);
-                // Optional: Visual feedback on the button after click
-                // saveButton.textContent = 'Saving...';
-                // saveButton.disabled = true;
+                
+                const payload = {
+                    userId,
+                    organizationId,
+                    libraryId
+                    // You can add more ad details to the payload here if needed
+                };
+
+                fetch(ADVERT_FARM_API_TEST_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                    credentials: 'include' // Crucial for sending cookies cross-origin
+                })
+                .then(apiResponse => {
+                    if (!apiResponse.ok) {
+                        // Try to get error message from backend if available
+                        return apiResponse.json().then(errData => {
+                            throw new Error(errData.message || `Failed to save ad. Status: ${apiResponse.status} ${apiResponse.statusText}`);
+                        }).catch(() => {
+                            // Fallback if parsing error message fails
+                            throw new Error(`Failed to save ad. Status: ${apiResponse.status} ${apiResponse.statusText}`);
+                        });
+                    }
+                    return apiResponse.json();
+                })
+                .then(data => {
+                    console.log('[Ad Saver] Ad saved successfully:', data);
+                    textSpan.textContent = 'Ad Saved!'; // Success feedback
+                    alert('Ad successfully saved to Advert Farm!');
+                    // Re-enable button after a short delay to show success message
+                    setTimeout(() => {
+                        textSpan.textContent = 'Save Ad to Advert Farm';
+                        saveButton.style.opacity = '1';
+                        saveButton.removeAttribute('disabled');
+                    }, 2000);
+                })
+                .catch(error => {
+                    console.error('[Ad Saver] Error saving ad:', error);
+                    textSpan.textContent = 'Save Failed'; // Error feedback
+                    alert(`Error saving ad: ${error.message}`);
+                    // Re-enable button
+                    setTimeout(() => {
+                        textSpan.textContent = 'Save Ad to Advert Farm';
+                        saveButton.style.opacity = '1';
+                        saveButton.removeAttribute('disabled');
+                    }, 2000);
+                });
+
             } else {
                 console.log('[Ad Saver] Not authenticated. Redirecting to login.');
                 alert('You need to be logged into Advert Farm to save ads. Redirecting to login...');
-                // Open the login page in a new tab
                 window.open(ADVERT_FARM_LOGIN_URL, '_blank');
+                textSpan.textContent = 'Save Ad to Advert Farm'; // Reset button text
+                saveButton.style.opacity = '1';
+                saveButton.removeAttribute('disabled');
             }
         });
     });
