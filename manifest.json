@@ -1,0 +1,30 @@
+{
+    "manifest_version": 3,
+    "name": "Meta Ad Library Saver",
+    "version": "0.1.0",
+    "description": "Helps save ads from the Meta Ad Library by grabbing their ID and injecting a save button.",
+    "permissions": [
+        "activeTab",
+        "scripting",
+        "storage",
+        "cookies"
+    ],
+    "host_permissions": [
+        "*://*.facebook.com/ads/library/*",
+        "https://www.advertfarm.com/*"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": ["*://*.facebook.com/ads/library/*"],
+            "js": ["content.js"],
+            "run_at": "document_idle"
+        }
+    ],
+    "icons": {
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+    }
+}
