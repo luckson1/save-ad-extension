@@ -6,8 +6,7 @@
     "permissions": [
         "activeTab",
         "scripting",
-        "storage",
-        "cookies"
+        "storage"
     ],
     "host_permissions": [
         "*://*.facebook.com/ads/library/*",
