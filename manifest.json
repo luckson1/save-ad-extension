@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
     "name": "Advert Farm Ad Saver",
-    "version": "0.1.1",
-    "description": "Helps save ads from the Meta Ad Library to Advert Farms.",
+    "version": "0.1.2",
+    "description": "Helps save ads from the Meta Ad Library to Advert Farm.",
     "permissions": [
         "activeTab",
         "scripting",
