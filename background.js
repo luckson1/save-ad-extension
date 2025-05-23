@@ -3,7 +3,7 @@
 const ADVERT_FARM_SESSION_URL = 'https://www.advertfarm.com/api/auth/session';
 const ADVERT_FARM_LOGIN_URL = 'https://www.advertfarm.com/'; // Or your specific login page
 const ADVERT_FARM_INSPIRATION_URL = 'https://www.advertfarm.com/inspiration'; // For redirection
-const ADVERT_FARM_API_SAVE_AD_URL = 'https://www.advertfarm.com/api/test'; // Your actual save endpoint
+const ADVERT_FARM_API_SAVE_AD_URL = 'https://www.advertfarm.com/api/save-library-data'; // Your actual save endpoint
 const LOCAL_STORAGE_ORG_KEY = "selectedOrgId";
 const SAVED_ADS_STORAGE_KEY = "savedAdLibraryIds"; // Key for storing saved ad IDs
 

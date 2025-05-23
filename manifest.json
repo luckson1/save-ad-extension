@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Advert Farm Ad Saver",
     "version": "0.1.0",
-    "description": "Helps save ads from the Meta Ad Library by grabbing their ID and injecting a save button.",
+    "description": "Helps save ads from the Meta Ad Library to Advert Farms.",
     "permissions": [
         "activeTab",
         "scripting",
