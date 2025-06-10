@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Advert Farm Ad Saver",
     "version": "0.1.2",
-    "description": "Helps save ads from the Meta Ad Library to Advert Farm.",
+    "description": "Save ads from Tiktok and Meta Ad Library to Advert Farm.",
     "permissions": [
         "activeTab",
         "scripting",
@@ -10,6 +10,7 @@
     ],
     "host_permissions": [
         "*://*.facebook.com/ads/library/*",
+        "*://*.tiktok.com/*",
         "https://www.advertfarm.com/*"
     ],
     "background": {
@@ -17,7 +18,7 @@
     },
     "content_scripts": [
         {
-            "matches": ["*://*.facebook.com/ads/library/*"],
+            "matches": ["*://*.facebook.com/ads/library/*", "*://ads.tiktok.com/business/creativecenter/inspiration/topads*"],
             "js": ["content.js"],
             "run_at": "document_idle"
         }

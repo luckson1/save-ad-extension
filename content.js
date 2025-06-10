@@ -1,13 +1,17 @@
 // content.js
 
-const PROCESSED_MARKER_CLASS = 'ad-saver-extension-processed-card';
-const SAVE_BUTTON_CLASS = 'ad-saver-extension-save-button';
-const SAVED_BUTTON_CLASS = 'ad-saver-extension-saved-button'; // New class for saved state
+const FB_PROCESSED_MARKER_CLASS = 'ad-saver-extension-processed-card';
+const FB_SAVE_BUTTON_CLASS = 'ad-saver-extension-save-button';
+const FB_SAVED_BUTTON_CLASS = 'ad-saver-extension-saved-button'; // New class for saved state
 const BUTTON_WRAPPER_CLASS = 'ad-saver-button-wrapper'; // For the new wrapper
 const ADVERT_FARM_LOGIN_URL = 'https://www.advertfarm.com/'; // Or your specific login page
 const ADVERT_FARM_INSPIRATION_URL = 'https://www.advertfarm.com/inspiration'; // URL for inspiration page
 // const ADVERT_FARM_API_TEST_URL = 'https://www.advertfarm.com/api/test'; // No longer called directly from here
 // const LOCAL_STORAGE_ORG_KEY = "selectedOrgId"; // Handled by background script
+
+const TIKTOK_PROCESSED_MARKER_CLASS = 'ad-saver-extension-processed-tiktok-card';
+const TIKTOK_SAVE_BUTTON_CLASS = 'ad-saver-extension-save-button-tiktok';
+const TIKTOK_SAVED_BUTTON_CLASS = 'ad-saver-extension-saved-button-tiktok';
 
 /**
  * Checks with background script if an ad is already saved
@@ -51,7 +55,7 @@ function debounce(func, wait) {
  * @param {HTMLElement} adCardElement - The DOM element suspected to be an ad card.
  * @returns {string|null} The extracted library ID, or null if not found.
  */
-function extractLibraryId(adCardElement) {
+function extractFacebookLibraryId(adCardElement) {
     // XPath to find any element within adCardElement that starts with "Library ID:"
     // The leading '.' makes the XPath relative to adCardElement
     const xpathResult = document.evaluate(
@@ -78,7 +82,7 @@ function extractLibraryId(adCardElement) {
  * @param {HTMLElement} originalButtonElement - The original Meta button element (div[role="button"]).
  * @param {string} libraryId - The library ID for this ad.
  */
-async function addSaveButtonToAd(originalButtonElement, libraryId) {
+async function addFacebookSaveButtonToAd(originalButtonElement, libraryId) {
     // Check if our button wrapper already exists (avoids duplicates)
     if (originalButtonElement.parentElement.querySelector('.' + BUTTON_WRAPPER_CLASS)) {
         return;
@@ -115,7 +119,7 @@ async function addSaveButtonToAd(originalButtonElement, libraryId) {
     
     if (isSaved) {
         // Styling for already saved ads
-        saveButton.className = SAVED_BUTTON_CLASS;
+        saveButton.className = FB_SAVED_BUTTON_CLASS;
         saveButton.style.backgroundColor = isDarkMode ? 'hsl(150, 70%, 30%)' : 'hsl(150, 60%, 40%)'; // Green shade
         
         // Add a checkmark and "Saved to Advert Farm" text
@@ -128,7 +132,7 @@ async function addSaveButtonToAd(originalButtonElement, libraryId) {
         saveButton.style.opacity = '0.85';
     } else {
         // Normal styling for unsaved ads
-        saveButton.className = SAVE_BUTTON_CLASS;
+        saveButton.className = FB_SAVE_BUTTON_CLASS;
         saveButton.style.backgroundColor = primaryColor;
         
         // Create text content for save button
@@ -169,7 +173,7 @@ async function addSaveButtonToAd(originalButtonElement, libraryId) {
                         console.log('[Ad Saver] Ad save initiated successfully via background:', response.data);
                         
                         // Update button to saved state permanently
-                        saveButton.className = SAVED_BUTTON_CLASS;
+                        saveButton.className = FB_SAVED_BUTTON_CLASS;
                         saveButton.style.backgroundColor = isDarkMode ? 'hsl(150, 70%, 30%)' : 'hsl(150, 60%, 40%)';
                         textSpan.textContent = '✓ Saved to Advert Farm';
                         saveButton.style.opacity = '0.85';
@@ -232,7 +236,7 @@ async function addSaveButtonToAd(originalButtonElement, libraryId) {
 /**
  * Finds all ad cards on the page, extracts their IDs, and adds "Save Ad" buttons.
  */
-function findAndProcessAds() {
+function findAndProcessFacebookAds() {
     // console.log('[Ad Saver] Scanning for ads...');
 
     // Find all <div> elements containing the text "See ad details" OR "See summary details".
@@ -265,7 +269,7 @@ function findAndProcessAds() {
         for (let j = 0; j < 10; j++) {
             if (!currentAncestor) break;
             // Check if this ancestor contains the Library ID text
-            if (extractLibraryId(currentAncestor)) {
+            if (extractFacebookLibraryId(currentAncestor)) {
                  adCardElement = currentAncestor;
                  break;
             }
@@ -278,17 +282,17 @@ function findAndProcessAds() {
         }
 
         // Check if this ad card has already been processed by our extension
-        if (adCardElement.classList.contains(PROCESSED_MARKER_CLASS)) {
+        if (adCardElement.classList.contains(FB_PROCESSED_MARKER_CLASS)) {
             // console.log('[Ad Saver] Ad card already processed, skipping button addition for ID (if any):', adCardElement);
             continue;
         }
 
-        const libraryId = extractLibraryId(adCardElement); // Re-extract from the confirmed adCardElement
+        const libraryId = extractFacebookLibraryId(adCardElement); // Re-extract from the confirmed adCardElement
 
         if (libraryId) {
             // console.log('[Ad Saver] Adding button for Library ID:', libraryId, 'to card:', adCardElement);
-            addSaveButtonToAd(clickableButtonElement, libraryId); // Pass the Meta button, not the ad card
-            adCardElement.classList.add(PROCESSED_MARKER_CLASS); // Mark this ad card as processed
+            addFacebookSaveButtonToAd(clickableButtonElement, libraryId); // Pass the Meta button, not the ad card
+            adCardElement.classList.add(FB_PROCESSED_MARKER_CLASS); // Mark this ad card as processed
         } else {
             // console.warn('[Ad Saver] Could not find Library ID in identified ad card:', adCardElement, 'associated with button:', clickableButtonElement);
         }
@@ -296,16 +300,192 @@ function findAndProcessAds() {
 }
 
 // --- MutationObserver to handle dynamically loaded ads (e.g., infinite scroll) ---
-const debouncedProcessAds = debounce(findAndProcessAds, 500); // Debounce to avoid too many calls
+const debouncedProcessFacebookAds = debounce(findAndProcessFacebookAds, 500); // Debounce to avoid too many calls
 
-const observer = new MutationObserver((mutationsList) => {
+const facebookObserver = new MutationObserver((mutationsList) => {
     for (const mutation of mutationsList) {
         // We are interested in changes where new nodes are added to the DOM.
         if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
             // A simple check: if added nodes contain typical ad text, or just re-scan.
             // For robustness, just re-scan on additions.
-            debouncedProcessAds();
+            debouncedProcessFacebookAds();
             return; // No need to check other mutations in this batch if one triggered a scan
+        }
+    }
+});
+
+/**
+ * Extracts the Creative Link from a given TikTok ad card element.
+ * @param {HTMLElement} adCardElement - The DOM element for the TikTok ad card.
+ * @returns {string|null} The extracted creative link, or null if not found.
+ */
+function extractTiktokCreativeLink(adCardElement) {
+    // The link is on the "See analytics" button.
+    const linkElement = adCardElement.querySelector('[class*="TopadsVideoCard_cardAction"] a');
+    if (linkElement && linkElement.href) {
+        // The link might be relative, so we convert it to an absolute URL
+        return new URL(linkElement.href, document.baseURI).href;
+    }
+    console.warn('[Ad Saver] Creative link not found in:', adCardElement);
+    return null;
+}
+
+/**
+ * Creates and injects a "Save Ad" button for a TikTok creative.
+ * @param {HTMLElement} adCardElement - The ad card element to inject the button into.
+ * @param {string} creativeLink - The creative link for this ad.
+ */
+async function addTiktokSaveButtonToAd(adCardElement, creativeLink) {
+    // Use the new, more robust selector for the "See analytics" button's inner div
+    const analyticsButton = adCardElement.querySelector('[class*="CcButton_secondary__"]');
+
+    if (!analyticsButton) {
+        console.warn('[Ad Saver] Could not find analytics button for TikTok, cannot inject save button.');
+        return;
+    }
+    
+    // The clickable element is the parent <a> tag. We need to wrap this.
+    const analyticsLink = analyticsButton.closest('a');
+    if (!analyticsLink) {
+         console.warn('[Ad Saver] Could not find analytics link wrapper.');
+         return;
+    }
+
+    // Check if our button wrapper already exists to avoid duplicates
+    if (analyticsLink.parentElement.classList.contains(BUTTON_WRAPPER_CLASS)) {
+        return;
+    }
+
+    const isSaved = await checkIfAdSaved(creativeLink);
+
+    const parentContainer = analyticsLink.parentElement;
+    if (!parentContainer) return;
+
+    // Create a wrapper div that will contain both buttons
+    const flexColumnWrapper = document.createElement('div');
+    flexColumnWrapper.className = BUTTON_WRAPPER_CLASS;
+    flexColumnWrapper.style.display = 'flex';
+    flexColumnWrapper.style.flexDirection = 'column';
+    flexColumnWrapper.style.width = '100%';
+    flexColumnWrapper.style.gap = '8px';
+
+    // Determine theme for color scheme
+    const isDarkMode = document.documentElement.classList.contains('dark') ||
+        window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const primaryColor = isDarkMode
+        ? 'hsl(263.4, 70%, 50.4%)'
+        : 'hsl(262.1, 83.3%, 57.8%)';
+
+    const saveButton = document.createElement('div');
+    const textSpan = document.createElement('span');
+    saveButton.appendChild(textSpan);
+
+    if (isSaved) {
+        saveButton.className = TIKTOK_SAVED_BUTTON_CLASS;
+        textSpan.textContent = '✓ Saved to Advert Farm';
+        saveButton.style.backgroundColor = isDarkMode ? 'hsl(150, 70%, 30%)' : 'hsl(150, 60%, 40%)';
+        saveButton.style.opacity = '0.85';
+        saveButton.style.cursor = 'default';
+    } else {
+        saveButton.className = TIKTOK_SAVE_BUTTON_CLASS;
+        textSpan.textContent = 'Save Ad to Advert Farm';
+        saveButton.style.backgroundColor = primaryColor;
+        saveButton.style.cursor = 'pointer';
+
+        saveButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            saveButton.style.opacity = '0.7';
+            textSpan.textContent = 'Saving...';
+            saveButton.setAttribute('disabled', 'true');
+
+            chrome.runtime.sendMessage(
+                { action: "saveAdViaAdvertFarmTab", data: { libraryId: creativeLink, isTiktok: true } },
+                (response) => {
+                    if (chrome.runtime.lastError) {
+                        console.error('[Ad Saver] Error:', chrome.runtime.lastError.message);
+                        textSpan.textContent = 'Error';
+                    } else if (response && response.success) {
+                        textSpan.textContent = '✓ Saved to Advert Farm';
+                        saveButton.className = TIKTOK_SAVED_BUTTON_CLASS;
+                        saveButton.style.backgroundColor = isDarkMode ? 'hsl(150, 70%, 30%)' : 'hsl(150, 60%, 40%)';
+                        saveButton.style.opacity = '0.85';
+                        saveButton.replaceWith(saveButton.cloneNode(true)); // Removes listener
+                        alert(response.message || 'Ad saved successfully!');
+                    } else {
+                        textSpan.textContent = 'Save Failed';
+                        let alertMessage = `Failed to save ad. Reason: ${response ? response.message : 'Unknown error'}`;
+                        if (response && response.redirectToLogin) {
+                            alert('You need to be logged into Advert Farm. Redirecting...');
+                            window.open(ADVERT_FARM_LOGIN_URL, '_blank');
+                        } else {
+                             alert(alertMessage);
+                        }
+                    }
+
+                    // Re-enable button on failure
+                    if (!(response && response.success)) {
+                         setTimeout(() => {
+                            textSpan.textContent = 'Save Ad to Advert Farm';
+                            saveButton.style.opacity = '1';
+                            saveButton.removeAttribute('disabled');
+                        }, 2000);
+                    }
+                }
+            );
+        });
+    }
+
+    // Common styling for the button
+    saveButton.style.color = 'white';
+    saveButton.style.border = 'none';
+    const analyticsStyles = window.getComputedStyle(analyticsButton);
+    saveButton.style.borderRadius = 'var(--radius, 0.5rem)'; // Match Facebook style
+    saveButton.style.padding = analyticsStyles.padding;
+    saveButton.style.height = analyticsButton.offsetHeight + 'px';
+    saveButton.style.width = '100%';
+    textSpan.style.fontWeight = 'bold';
+
+    // Replace the original button with our wrapper
+    parentContainer.insertBefore(flexColumnWrapper, analyticsLink);
+    
+    // Move our new button and the original button into the wrapper.
+    // Save button is first, so it appears on top.
+    flexColumnWrapper.appendChild(saveButton);
+    flexColumnWrapper.appendChild(analyticsLink);
+    console.log('[Ad Saver] Successfully added TikTok save button for creative:', creativeLink);
+}
+
+/**
+ * Finds all TikTok ad cards on the page and processes them.
+ */
+function findAndProcessTiktokAds() {
+    // Use a more robust selector that looks for a partial class name.
+    const adCards = document.querySelectorAll('[class*="TopadsVideoCard_card__"]');
+    console.log(`[Ad Saver] Found ${adCards.length} TikTok ad cards to process.`);
+
+    for (const adCard of adCards) {
+        if (adCard.classList.contains(TIKTOK_PROCESSED_MARKER_CLASS)) {
+            continue;
+        }
+
+        const creativeLink = extractTiktokCreativeLink(adCard);
+
+        if (creativeLink) {
+            addTiktokSaveButtonToAd(adCard, creativeLink);
+            adCard.classList.add(TIKTOK_PROCESSED_MARKER_CLASS);
+        }
+    }
+}
+
+const debouncedProcessTiktokAds = debounce(findAndProcessTiktokAds, 500);
+
+const tiktokObserver = new MutationObserver((mutationsList) => {
+    for (const mutation of mutationsList) {
+        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+            debouncedProcessTiktokAds();
+            return;
         }
     }
 });
@@ -314,19 +494,27 @@ const observer = new MutationObserver((mutationsList) => {
  * Initial setup run when the content script loads.
  */
 function initialSetup() {
-  
+    const hostname = window.location.hostname;
 
-    // Initial scans for ads already on the page.
-    // Facebook Ad Library content can load progressively.
-    setTimeout(findAndProcessAds, 1000); // Run after 1s
-    setTimeout(findAndProcessAds, 3000); // Run again after 3s for slower elements
-    setTimeout(findAndProcessAds, 5000); // And one more pass
+    if (hostname.includes('facebook.com')) {
+        // Initial scans for ads already on the page.
+        setTimeout(findAndProcessFacebookAds, 1000);
+        setTimeout(findAndProcessFacebookAds, 3000);
+        setTimeout(findAndProcessFacebookAds, 5000);
 
-    // Start observing the document body for future DOM changes.
-    // `subtree: true` is important to catch changes deep in the DOM.
-    const targetNode = document.body;
-    const observerConfig = { childList: true, subtree: true };
-    observer.observe(targetNode, observerConfig);
+        // Start observing the document body for future DOM changes.
+        const targetNode = document.body;
+        const observerConfig = { childList: true, subtree: true };
+        facebookObserver.observe(targetNode, observerConfig);
+    } else if (hostname.includes('ads.tiktok.com')) {
+        setTimeout(findAndProcessTiktokAds, 1000);
+        setTimeout(findAndProcessTiktokAds, 3000);
+        setTimeout(findAndProcessTiktokAds, 5000);
+
+        const targetNode = document.body;
+        const observerConfig = { childList: true, subtree: true };
+        tiktokObserver.observe(targetNode, observerConfig);
+    }
 }
 
 // Ensure the setup runs only once, even if the script is injected multiple times (e.g. during development)

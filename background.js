@@ -155,7 +155,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     if (request.action === "saveAdViaAdvertFarmTab") {
         (async () => {
-            const { libraryId } = request.data;
+            const { libraryId, isTiktok } = request.data;
 
             const sessionData = await checkAdvertFarmSession();
             if (!sessionData || !sessionData.user) {
@@ -184,7 +184,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             }
 
             try {
-                const payload = { userId, organizationId, libraryId };
+                const payload = { userId, organizationId };
+                if (isTiktok) {
+                    payload.creativeLink = libraryId; // For TikTok, libraryId is the link
+                    payload.library = 'tiktok';
+                } else {
+                    payload.libraryId = libraryId; // For Facebook
+                    payload.library = 'meta';
+                }
+                
                 const executionResults = await chrome.scripting.executeScript({
                     target: { tabId: targetTab.id },
                     func: saveAdInPageContext, // The function to inject
@@ -197,6 +205,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     const result = executionResults[0].result;
                     if (result.success) {
                         // If save was successful, mark the ad as saved in storage
+                        // The `libraryId` from the request is the unique identifier we use for storage,
+                        // which is the ad's ID for Facebook and the creative link for TikTok.
                         await markAdAsSaved(libraryId);
                     }
                     sendResponse(result);
