@@ -5,7 +5,7 @@ const FB_SAVE_BUTTON_CLASS = 'ad-saver-extension-save-button';
 const FB_SAVED_BUTTON_CLASS = 'ad-saver-extension-saved-button'; // New class for saved state
 const BUTTON_WRAPPER_CLASS = 'ad-saver-button-wrapper'; // For the new wrapper
 const ADVERT_FARM_LOGIN_URL = 'https://www.advertfarm.com/'; // Or your specific login page
-const ADVERT_FARM_INSPIRATION_URL = 'https://www.advertfarm.com/inspiration'; // URL for inspiration page
+const ADVERT_FARM_INSPIRATION_URL = 'https://www.advertfarm.com/saved'; // URL for inspiration page
 // const ADVERT_FARM_API_TEST_URL = 'https://www.advertfarm.com/api/test'; // No longer called directly from here
 // const LOCAL_STORAGE_ORG_KEY = "selectedOrgId"; // Handled by background script
 
