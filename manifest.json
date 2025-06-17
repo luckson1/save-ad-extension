@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Advert Farm Ad Saver",
-    "version": "0.1.3",
+    "version": "0.1.4",
     "description": "Save ads from Tiktok and Meta Ad Library to Advert Farm.",
     "permissions": [
         "activeTab",
