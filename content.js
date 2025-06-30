@@ -4,9 +4,9 @@ const FB_PROCESSED_MARKER_CLASS = 'ad-saver-extension-processed-card';
 const FB_SAVE_BUTTON_CLASS = 'ad-saver-extension-save-button';
 const FB_SAVED_BUTTON_CLASS = 'ad-saver-extension-saved-button'; // New class for saved state
 const BUTTON_WRAPPER_CLASS = 'ad-saver-button-wrapper'; // For the new wrapper
-const ADVERT_FARM_LOGIN_URL = 'https://www.advertfarm.com/'; // Or your specific login page
-const ADVERT_FARM_INSPIRATION_URL = 'https://www.advertfarm.com/saved'; // URL for inspiration page
-// const ADVERT_FARM_API_TEST_URL = 'https://www.advertfarm.com/api/test'; // No longer called directly from here
+const ADVERT_FARM_LOGIN_URL = 'https://www.swipefile.pro/'; // Or your specific login page
+const ADVERT_FARM_INSPIRATION_URL = 'https://www.swipefile.pro/saved'; // URL for inspiration page
+// const ADVERT_FARM_API_TEST_URL = 'https://www.swipefile.pro/api/test'; // No longer called directly from here
 // const LOCAL_STORAGE_ORG_KEY = "selectedOrgId"; // Handled by background script
 
 const TIKTOK_PROCESSED_MARKER_CLASS = 'ad-saver-extension-processed-tiktok-card';
@@ -78,7 +78,7 @@ function extractFacebookLibraryId(adCardElement) {
 }
 
 /**
- * Creates and injects a "Save Ad to Advert Farm" button below the original Meta button.
+ * Creates and injects a "Save Ad to Swipe File" button below the original Meta button.
  * @param {HTMLElement} originalButtonElement - The original Meta button element (div[role="button"]).
  * @param {string} libraryId - The library ID for this ad.
  */
@@ -122,9 +122,9 @@ async function addFacebookSaveButtonToAd(originalButtonElement, libraryId) {
         saveButton.className = FB_SAVED_BUTTON_CLASS;
         saveButton.style.backgroundColor = isDarkMode ? 'hsl(150, 70%, 30%)' : 'hsl(150, 60%, 40%)'; // Green shade
         
-        // Add a checkmark and "Saved to Advert Farm" text
+        // Add a checkmark and "Saved to Swipe File" text
         const textSpan = document.createElement('span');
-        textSpan.textContent = '✓ Saved to Advert Farm';
+        textSpan.textContent = '✓ Saved to Swipe File';
         textSpan.style.fontWeight = 'bold';
         saveButton.appendChild(textSpan);
 
@@ -137,7 +137,7 @@ async function addFacebookSaveButtonToAd(originalButtonElement, libraryId) {
         
         // Create text content for save button
         const textSpan = document.createElement('span');
-        textSpan.textContent = 'Save Ad to Advert Farm';
+        textSpan.textContent = 'Save Ad to Swipe File';
         textSpan.style.fontWeight = 'bold';
         saveButton.appendChild(textSpan);
         
@@ -154,7 +154,7 @@ async function addFacebookSaveButtonToAd(originalButtonElement, libraryId) {
             // Send data to background script to handle the save operation
             chrome.runtime.sendMessage(
                 { 
-                    action: "saveAdViaAdvertFarmTab", 
+                    action: "saveAdViaSwipeFileTab", 
                     data: { libraryId: libraryId /* other ad details if any from the page */ } 
                 }, 
                 (response) => {
@@ -165,7 +165,7 @@ async function addFacebookSaveButtonToAd(originalButtonElement, libraryId) {
                         
                         // Re-enable button after a short delay
                         setTimeout(() => {
-                            textSpan.textContent = 'Save Ad to Advert Farm';
+                            textSpan.textContent = 'Save Ad to Swipe File';
                             saveButton.style.opacity = '1';
                             saveButton.removeAttribute('disabled');
                         }, 2000);
@@ -175,13 +175,13 @@ async function addFacebookSaveButtonToAd(originalButtonElement, libraryId) {
                         // Update button to saved state permanently
                         saveButton.className = FB_SAVED_BUTTON_CLASS;
                         saveButton.style.backgroundColor = isDarkMode ? 'hsl(150, 70%, 30%)' : 'hsl(150, 60%, 40%)';
-                        textSpan.textContent = '✓ Saved to Advert Farm';
+                        textSpan.textContent = '✓ Saved to Swipe File';
                         saveButton.style.opacity = '0.85';
                         
                         // Remove click event listener
                         saveButton.replaceWith(saveButton.cloneNode(true));
                         
-                        alert(response.message || 'Ad successfully saved to Advert Farm!');
+                        alert(response.message || 'Ad successfully saved to Swipe File!');
                     } else {
                         console.error('[Ad Saver] Failed to save ad via background:', response);
                         textSpan.textContent = 'Save Failed';
@@ -190,10 +190,10 @@ async function addFacebookSaveButtonToAd(originalButtonElement, libraryId) {
                             alertMessage += ` Reason: ${response.message}`;
                         }
                         if (response && response.redirectToLogin) {
-                            alert('You need to be logged into Advert Farm. Redirecting...');
+                            alert('You need to be logged into Swipe File. Redirecting...');
                             window.open(ADVERT_FARM_LOGIN_URL, '_blank');
                         } else if (response && response.redirectToInspiration) {
-                            alert('Organization ID not found. Please select an organization on the Advert Farm inspiration page. Redirecting...');
+                            alert('Organization ID not found. Please select an organization on the Swipe File inspiration page. Redirecting...');
                             window.open(ADVERT_FARM_INSPIRATION_URL, '_blank');
                         } else {
                             alert(alertMessage);
@@ -201,7 +201,7 @@ async function addFacebookSaveButtonToAd(originalButtonElement, libraryId) {
                         
                         // Re-enable button after a short delay
                         setTimeout(() => {
-                            textSpan.textContent = 'Save Ad to Advert Farm';
+                            textSpan.textContent = 'Save Ad to Swipe File';
                             saveButton.style.opacity = '1';
                             saveButton.removeAttribute('disabled');
                         }, 2000);
@@ -382,13 +382,13 @@ async function addTiktokSaveButtonToAd(adCardElement, creativeLink) {
 
     if (isSaved) {
         saveButton.className = TIKTOK_SAVED_BUTTON_CLASS;
-        textSpan.textContent = '✓ Saved to Advert Farm';
+        textSpan.textContent = '✓ Saved to Swipe File';
         saveButton.style.backgroundColor = isDarkMode ? 'hsl(150, 70%, 30%)' : 'hsl(150, 60%, 40%)';
         saveButton.style.opacity = '0.85';
         saveButton.style.cursor = 'default';
     } else {
         saveButton.className = TIKTOK_SAVE_BUTTON_CLASS;
-        textSpan.textContent = 'Save Ad to Advert Farm';
+        textSpan.textContent = 'Save Ad to Swipe File';
         saveButton.style.backgroundColor = primaryColor;
         saveButton.style.cursor = 'pointer';
 
@@ -401,13 +401,13 @@ async function addTiktokSaveButtonToAd(adCardElement, creativeLink) {
             saveButton.setAttribute('disabled', 'true');
 
             chrome.runtime.sendMessage(
-                { action: "saveAdViaAdvertFarmTab", data: { libraryId: creativeLink, isTiktok: true } },
+                { action: "saveAdViaSwipeFileTab", data: { libraryId: creativeLink, isTiktok: true } },
                 (response) => {
                     if (chrome.runtime.lastError) {
                         console.error('[Ad Saver] Error:', chrome.runtime.lastError.message);
                         textSpan.textContent = 'Error';
                     } else if (response && response.success) {
-                        textSpan.textContent = '✓ Saved to Advert Farm';
+                        textSpan.textContent = '✓ Saved to Swipe File';
                         saveButton.className = TIKTOK_SAVED_BUTTON_CLASS;
                         saveButton.style.backgroundColor = isDarkMode ? 'hsl(150, 70%, 30%)' : 'hsl(150, 60%, 40%)';
                         saveButton.style.opacity = '0.85';
@@ -417,7 +417,7 @@ async function addTiktokSaveButtonToAd(adCardElement, creativeLink) {
                         textSpan.textContent = 'Save Failed';
                         let alertMessage = `Failed to save ad. Reason: ${response ? response.message : 'Unknown error'}`;
                         if (response && response.redirectToLogin) {
-                            alert('You need to be logged into Advert Farm. Redirecting...');
+                            alert('You need to be logged into Swipe File. Redirecting...');
                             window.open(ADVERT_FARM_LOGIN_URL, '_blank');
                         } else {
                              alert(alertMessage);
@@ -427,7 +427,7 @@ async function addTiktokSaveButtonToAd(adCardElement, creativeLink) {
                     // Re-enable button on failure
                     if (!(response && response.success)) {
                          setTimeout(() => {
-                            textSpan.textContent = 'Save Ad to Advert Farm';
+                            textSpan.textContent = 'Save Ad to Swipe File';
                             saveButton.style.opacity = '1';
                             saveButton.removeAttribute('disabled');
                         }, 2000);

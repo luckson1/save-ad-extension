@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "Advert Farm Ad Saver",
-    "version": "0.1.4",
-    "description": "Save ads from Tiktok and Meta Ad Library to Advert Farm.",
+    "name": "Swipe File Ad Saver",
+    "version": "0.2.1",
+    "description": "Save ads from Tiktok and Meta Ad Library to your  Swipe File.",
     "permissions": [
         "activeTab",
         "scripting",
@@ -11,14 +11,21 @@
     "host_permissions": [
         "*://*.facebook.com/ads/library/*",
         "*://*.tiktok.com/*",
-        "https://www.advertfarm.com/*"
+        "*://adstransparency.google.com/*",
+        "*://*.linkedin.com/ads/*",
+        "https://www.swipefile.pro/*"
     ],
     "background": {
         "service_worker": "background.js"
     },
     "content_scripts": [
         {
-            "matches": ["*://*.facebook.com/ads/library/*", "*://ads.tiktok.com/business/creativecenter/inspiration/topads*"],
+            "matches": [
+                "*://*.facebook.com/ads/library/*", 
+                "*://ads.tiktok.com/business/creativecenter/inspiration/topads*",
+                "*://adstransparency.google.com/*",
+                "*://*.linkedin.com/ads/*"
+            ],
             "js": ["content.js"],
             "run_at": "document_idle"
         }
